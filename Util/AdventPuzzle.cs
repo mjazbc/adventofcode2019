@@ -66,7 +66,7 @@ namespace Util
             if (toClipBoard != null)
             {
                 Console.WriteLine("Copy the result? Y/N");
-                var key = Console.ReadLine();
+                //var key = Console.ReadLine();
 
                 //if (key.Equals("Y", StringComparison.CurrentCultureIgnoreCase))
                 //    Clipboard.SetText(toClipBoard);

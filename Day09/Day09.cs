@@ -167,7 +167,7 @@ namespace Day09
                         break;
                     }
                 default:
-                    throw new Exception("nekaj je odfukalo");
+                    throw new Exception("Unsupported mode "+ mode);
 
             }
         }
@@ -185,7 +185,7 @@ namespace Day09
                         return _intCode.GetValueOrDefault(_relativeBase + _intCode[_idx + element]);
                     }
                 default:
-                    throw new Exception("nekaj je odfukalo");
+                    throw new Exception("Unsupported mode "+ mode);
                    
             }
         }
