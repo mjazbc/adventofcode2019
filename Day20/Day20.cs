@@ -15,13 +15,13 @@ namespace Day20
 
             var tmp = portals.Single(x => x.Name == "AA");
             portals.Remove(tmp);
-            var startPos = (tmp.X, tmp.Y);
+            var startPos = (tmp.X, tmp.Y, 0);
 
             tmp = portals.Single(x => x.Name == "ZZ");
             portals.Remove(tmp);
-            var endPos = (tmp.X, tmp.Y);
+            var endPos = (tmp.X, tmp.Y, 0);
 
-            int result = Bfs(startPos, endPos, maze, portals);
+            int result = Bfs(startPos, endPos, maze, portals, Adjecant);
 
             return result.ToString();
         }
@@ -33,13 +33,13 @@ namespace Day20
 
             var tmp = portals.Single(x => x.Name == "AA");
             portals.Remove(tmp);
-            var startPos = (tmp.X, tmp.Y);
+            var startPos = (tmp.X, tmp.Y, 0);
 
             tmp = portals.Single(x => x.Name == "ZZ");
             portals.Remove(tmp);
-            var endPos = (tmp.X, tmp.Y);
+            var endPos = (tmp.X, tmp.Y, 0);
 
-            int result = Bfs(startPos, endPos, maze, portals);
+            int result = Bfs(startPos, endPos, maze, portals, AdjecantRecursive);
 
             return result.ToString();
         }
@@ -73,35 +73,35 @@ namespace Day20
         }
         private Portal FindPortal(int x, int y, char[][] map)
         {
-            int maxX = map[0].Length;
-            int maxY = map.Length;
+            int maxX = map[0].Length -1;
+            int maxY = map.Length - 1;
 
             var first = map[y - 1][x];
             var second = map[y - 2][x];
             if (char.IsLetter(first) && char.IsLetter(second))
             {
-                return CreatePortal(x, y, "" + first + second, maxX, maxY);
+                return CreatePortal(x, y, "" + second + first, maxX, maxY);
             }
 
             first = map[y + 1][x];
             second = map[y + 2][x];
             if (char.IsLetter(first) && char.IsLetter(second))
             {
-                return CreatePortal(x, y, "" +second + first ,maxX, maxY);
+                return CreatePortal(x, y, "" +first + second ,maxX, maxY);
             }
 
             first = map[y][x - 1];
             second = map[y][x - 2];
             if (char.IsLetter(first) && char.IsLetter(second))
             {
-                return CreatePortal(x, y, "" +first + second , maxX, maxY);
+                return CreatePortal(x, y, "" +second + first , maxX, maxY);
             }
 
             first = map[y][x + 1];
             second = map[y][x + 2];
             if (char.IsLetter(first) && char.IsLetter(second))
             {
-                return CreatePortal(x, y, "" + second + first, maxX, maxY);
+                return CreatePortal(x, y, "" + first + second, maxX, maxY);
             }
 
             return null;
@@ -115,14 +115,15 @@ namespace Day20
                 X = x,
                 Y = y,
                 Name = name,
-                Dir = (x <= 2 || x >= maxX - 1 || y <= 2 || y >= maxY) ? Portal.Direction.Out : Portal.Direction.In      
+                Dir = (x <= 2 || x >= maxX - 2 || y <= 2 || y >= maxY - 2) ? Portal.Direction.Out : Portal.Direction.In      
             };
         }
 
-        public int Bfs((int x, int y) pos, (int x, int y) end, char[][] map, HashSet<Portal> portals)
+        public int Bfs((int x, int y, int level) pos, (int x, int y, int level) end, char[][] map, HashSet<Portal> portals,
+            Func<(int x, int y, int level), HashSet<Portal>, IEnumerable<(int x, int y, int level)>> generateAdjecant)
         {
-            var q = new Queue<((int x, int y), int)>();
-            var discovered = new HashSet<(int x, int y)>();
+            var q = new Queue<((int x, int y, int level), int)>();
+            var discovered = new HashSet<(int x, int y, int level)>();
 
             discovered.Add(pos);
             q.Enqueue((pos, 0));
@@ -137,7 +138,7 @@ namespace Day20
                 if (pos == end)
                     return dist;
 
-                foreach (var w in Adjecant(pos, portals))
+                foreach (var w in generateAdjecant(pos, portals))
                 {
                     if (discovered.Contains(w))
                         continue;
@@ -150,15 +151,32 @@ namespace Day20
             throw new Exception("not found");
         }
 
-        private IEnumerable<(int x, int y)> Adjecant((int x, int y) pos, HashSet<Portal> portals)
+        private IEnumerable<(int x, int y, int level)> Adjecant((int x, int y, int level) pos, HashSet<Portal> portals)
         {
             var currentPortal = portals.SingleOrDefault(portal => portal.X == pos.x && portal.Y == pos.y);
 
             if (currentPortal != null)
-                yield return (currentPortal.Other.X, currentPortal.Other.Y);
+                yield return (currentPortal.Other.X, currentPortal.Other.Y, pos.level);
 
             foreach (var adj in new (int x, int y)[] { (0, 1), (0, -1), (1, 0), (-1, 0) })
-                yield return (pos.x + adj.x, pos.y + adj.y);
+                yield return (pos.x + adj.x, pos.y + adj.y, pos.level);
+
+        }
+
+        private IEnumerable<(int x, int y, int level)> AdjecantRecursive((int x, int y, int level) pos, HashSet<Portal> portals)
+        {
+            var currentPortal = portals.SingleOrDefault(portal => portal.X == pos.x && portal.Y == pos.y);
+
+            //No out portals on outmost level
+            if (pos.level == 0 && currentPortal?.Dir == Portal.Direction.Out)
+                currentPortal = null;
+
+            if (currentPortal != null) 
+                yield return (currentPortal.Other.X, currentPortal.Other.Y, 
+                    pos.level + (currentPortal.Dir == Portal.Direction.Out ? -1 : 1));
+
+            foreach (var adj in new (int x, int y)[] { (0, 1), (0, -1), (1, 0), (-1, 0) })
+                yield return (pos.x + adj.x, pos.y + adj.y, pos.level);
 
         }
 
