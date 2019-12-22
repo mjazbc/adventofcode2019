@@ -1,0 +1,10 @@
+﻿OR A T
+AND B T
+AND C T
+NOT T J
+AND D J
+NOT J T
+OR E T
+OR H T
+AND T J
+RUN
