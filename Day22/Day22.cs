@@ -11,74 +11,75 @@ namespace Day22
         public override string SolveFirstPuzzle()
         {
             var instructions = ParseInput();
-            var deck = InitDeck(10007);
+            long size = 10007;
+            long resultIdx = 2019;
 
-            var resultCard = deck.ToArray()[2020];
+            resultIdx = ShuffleDeck(instructions, size, resultIdx);
 
-            foreach(var instruction in instructions)
+            return resultIdx.ToString();
+        }
+
+        public override string SolveSecondPuzzle()
+        {
+            var instructions = ParseInput();
+            long size = 119315717514047;
+            long resultIdx = 2020;
+
+            HashSet<long> idxs = new HashSet<long>();
+            for(long i = 0; i < 100000; i++) {
+
+                resultIdx = ShuffleDeck(instructions, size, resultIdx);
+                if (idxs.Contains(resultIdx))
+                    Console.WriteLine(i + " " + resultIdx);
+                else
+                    idxs.Add(resultIdx);
+            }
+
+            return resultIdx.ToString();
+        }
+
+        private long ShuffleDeck(List<(Technique, long)> instructions, long size, long resultIdx)
+        {
+            foreach (var instruction in instructions)
             {
                 switch (instruction.Item1)
                 {
                     case Technique.NewStack:
-                        ReverseList(ref deck); 
+                        ReverseList(size, ref resultIdx);
                         break;
                     case Technique.Cut:
-                        Cut(instruction.Item2, ref deck);
+                        Cut(instruction.Item2, size, ref resultIdx);
                         break;
                     case Technique.Increment:
-                        Increment(instruction.Item2, ref deck);
+                        Increment(instruction.Item2, size, ref resultIdx);
                         break;
                     default: throw new Exception();
                 }
-
-                Console.WriteLine(deck.ToList().IndexOf(resultCard));
             }
 
-            return deck.ToList().IndexOf(resultCard).ToString();
-
-            throw new NotImplementedException();
+            return resultIdx;
         }
 
-        public void Increment(long step, ref LinkedList<long> deck)
+        public void Increment(long step, long size, ref long cardIdx)
         {
-            var newDeck = new long[deck.Count];
-            var current = deck.First;
-            long idx = 0;
-
-            while(current != null)
-            {
-                newDeck[idx] = current.Value;
-                deck.RemoveFirst();
-                current = deck.First;
-
-                idx = (idx + step) % newDeck.Length;
-            }
-
-            deck = new LinkedList<long>(newDeck);
+            cardIdx = (cardIdx * step) % size;
         }
 
-        public void Cut(long cut, ref LinkedList<long> deck)
+        public void Cut(long cut, long size, ref long cardIdx)
         { 
-            if(cut < 0)
-            {
-                for(; cut < 0; cut++)
-                {
-                    var curr = deck.Last.Value;
-                    deck.AddFirst(curr);
-                    deck.RemoveLast();
-                }
-            }
-            else if( cut > 0)
-            {
-                for (; cut > 0; cut--)
-                {
-                    var curr = deck.First.Value;
-                    deck.AddLast(curr);
-                    deck.RemoveFirst();
-                }
-            }
+            cardIdx = cardIdx - cut;
+            if (cardIdx < 0)
+                cardIdx = size + cardIdx;
+            if (cardIdx >= size)
+                cardIdx = cardIdx - size;
+            
         }
-   
+
+        public void ReverseList(long deckSize, ref long cardIdx )
+        {
+            cardIdx = deckSize - 1 - cardIdx;
+        }
+
         public void ReverseList(ref LinkedList<long> deck)
         {
             var newList = new LinkedList<long>();
@@ -100,10 +101,6 @@ namespace Day22
 
             return deck;
         }
-        public override string SolveSecondPuzzle()
-        {
-            throw new NotImplementedException();
-        }
 
         private List<(Technique, long)> ParseInput()
         {
@@ -121,7 +118,7 @@ namespace Day22
                     var num = line.Split(' ').Last();
                     instructions.Add((Technique.Increment, long.Parse(num)));
                 }
-                else if(line.StartsWith("deal longo new stack"))
+                else if(line.StartsWith("deal into new stack"))
                 {
                     instructions.Add((Technique.NewStack, 0));
                 }

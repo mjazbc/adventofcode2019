@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Day22
+namespace Day25
 {
     class Program
     {
         static void Main(string[] args)
         {
-            var d = new Day22();
-            d.Solve(Util.Puzzle.Second);
+            var d = new Day25();
+            d.Solve(Util.Puzzle.First);
         }
     }
 }
