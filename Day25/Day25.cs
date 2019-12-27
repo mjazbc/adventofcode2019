@@ -11,7 +11,7 @@ namespace Day25
     {
         public override string SolveFirstPuzzle()
         {
-
+            //IntCode is modified so it already contains all objects in inventory
             var code = ReadInputText<string>().Split(',').Select(long.Parse).ToArray();
             var exe = new Executable(null, code);
 
@@ -28,7 +28,6 @@ namespace Day25
             string text = "";
             while (true)
             {
-
                 (long output, bool halt) = exe.Execute();
 
                 text += (char)output;
@@ -40,7 +39,10 @@ namespace Day25
 
                 if (halt)
                 {
-                    Console.Write(text);
+                    Console.Write(text.Trim());
+                    Console.WriteLine();
+
+                    //Match the password in text
                     var result = r.Match(text);
                     return result.Value;
                 }               
@@ -62,15 +64,22 @@ namespace Day25
             };
 
             StringBuilder sb = new StringBuilder();
+            
+            //Drop everything
             sb.Append(string.Join("\n", objects.Select(o => $"drop {o}")));
 
+            //Take every combination, try moving and drop all if unsuccessfull
             for (int i = 1; i < Math.Pow(2, 8) - 1; i++)
             {
                 List<string> currentComb = new List<string>();
-                string bin = Convert.ToString(i, 2).PadLeft(8,'0');
+                var bin = Convert.ToString(i, 2)
+                    .PadLeft(8,'0')
+                    .Select(b => b == '1')
+                    .ToArray();
+
                 for (int j = 0; j < bin.Count(); j++)
                 {
-                    if (bin[j] == '1')
+                    if (bin[j])
                         currentComb.Add(objects[j]);
                 }
 
