@@ -7,7 +7,7 @@ namespace Day18
         static void Main(string[] args)
         {
             var d = new Day18();
-            d.Solve(Util.Puzzle.First);
+            d.Solve(Util.Puzzle.Second);
         }
     }
 }
